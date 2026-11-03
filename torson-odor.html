@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Төрсөн өдрийн мэнд!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF0F6; --glow:#FFC9DF; --ink:#3A1450; --muted:#7A5A93; --card:#FFFFFF;
+  --pink:#FF4D8D; --amber:#FFB000; --mint:#14B8A6; --plate:#EBCFF5;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1E0F3D; --glow:#4A1B6E; --ink:#FFF1F7; --muted:#D3B5E8; --card:#2F1A59; --plate:#4B2A80;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1E0F3D; --glow:#4A1B6E; --ink:#FFF1F7; --muted:#D3B5E8; --card:#2F1A59; --plate:#4B2A80;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{
+  margin:0; background:radial-gradient(ellipse at 50% 0%,var(--glow),var(--bg) 65%) fixed; color:var(--ink);
+  font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  line-height:1.6; min-height:100vh; overflow-x:hidden;
+}
+main{max-width:640px; margin:0 auto; padding:32px 20px 56px; text-align:center}
+h1{
+  font-family:"Unbounded","Arial Black",system-ui,sans-serif; font-weight:800;
+  font-size:clamp(28px,8vw,48px); line-height:1.15; margin:8px 0 12px; letter-spacing:-.01em;
+}
+.to{font-family:"Unbounded",system-ui,sans-serif; font-weight:600; font-size:clamp(18px,5vw,24px); color:var(--pink); margin:0 0 12px}
+.sub{color:var(--muted); margin:0 auto 20px; max-width:34ch}
+label.name{display:inline-flex; gap:8px; align-items:center; font-size:14px; color:var(--muted)}
+input{
+  font:inherit; color:var(--ink); background:var(--card);
+  border:2px solid var(--plate); border-radius:12px; padding:8px 12px; width:11em;
+}
+input:focus-visible,button:focus-visible{outline:3px solid var(--pink); outline-offset:2px}
+.stage{margin:24px auto 8px; width:min(100%,360px)}
+svg{width:100%; height:auto; display:block; overflow:visible}
+.flame{transform-origin:center bottom; transform-box:fill-box; animation:flick .5s ease-in-out infinite alternate}
+.flame:nth-of-type(2n){animation-duration:.42s}
+@keyframes flick{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.88,1.12) rotate(3deg)}}
+.out .flame{animation:none; opacity:0; transition:opacity .25s}
+.smoke{opacity:0}
+.out .smoke{animation:rise 1.4s ease-out forwards}
+@keyframes rise{from{opacity:.7; transform:translateY(0)}to{opacity:0; transform:translateY(-26px)}}
+button.blow{
+  font-family:"Unbounded",system-ui,sans-serif; font-weight:600; font-size:16px;
+  color:#fff; background:var(--pink); border:0; border-radius:999px;
+  padding:14px 28px; cursor:pointer; margin-top:8px;
+  transition:transform .15s;
+}
+button.blow:active{transform:scale(.96)}
+button.blow[disabled]{background:var(--mint); cursor:default}
+.wish{
+  background:var(--card); border-radius:20px; padding:24px 22px; margin:32px 0 0; text-align:left;
+  border-left:8px solid var(--amber);
+  display:none;
+}
+.wish.show{display:block; animation:pop .5s ease-out}
+@keyframes pop{from{opacity:0; transform:scale(.96)}to{opacity:1; transform:none}}
+.wish h2{font-family:"Unbounded",system-ui,sans-serif; font-size:18px; margin:0 0 10px}
+.wish p{margin:0 0 10px}
+.wish p:last-child{margin:0}
+.wish .song{
+  display:inline-block; margin-top:16px; padding:12px 22px; border-radius:999px;
+  background:var(--pink); color:#fff; text-decoration:none; font-weight:600;
+}
+.wish .song:focus-visible{outline:3px solid var(--amber); outline-offset:2px}
+canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:5}
+@media (prefers-reduced-motion:reduce){
+  .flame,.out .smoke,.wish.show{animation:none}
+}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<main>
+  <label class="name">Эгчийн нэр:
+    <input id="nm" type="text" maxlength="24" placeholder="Нэрээ бич" autocomplete="off" value="Арилга">
+  </label>
+  <h1 id="title">Төрсөн өдрийн мэнд!</h1>
+  <p class="to" id="to">Эгчдээ</p>
+  <p class="sub">Эгчээ, лаагаа үлээгээд хүслээ шивнээрэй.</p>
+
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 300 300" role="img" aria-label="Таван лаатай бялуу">
+      <ellipse cx="150" cy="280" rx="130" ry="14" fill="var(--plate)"/>
+      <rect x="55" y="190" width="190" height="80" rx="14" fill="#FF4D8D"/>
+      <path d="M55 215 q16 18 32 0 t32 0 t32 0 t32 0 t32 0 v-25 h-160z" fill="#FFF"/>
+      <rect x="85" y="130" width="130" height="62" rx="12" fill="#8B5CF6"/>
+      <path d="M85 150 q13 14 26 0 t26 0 t26 0 t26 0 v-20 h-104z" fill="#FFF"/>
+      <g stroke-linecap="round">
+        <line x1="108" y1="130" x2="108" y2="94" stroke="#FFB020" stroke-width="8"/>
+        <line x1="129" y1="130" x2="129" y2="88" stroke="#FF5C8A" stroke-width="8"/>
+        <line x1="150" y1="130" x2="150" y2="84" stroke="#FFB020" stroke-width="8"/>
+        <line x1="171" y1="130" x2="171" y2="88" stroke="#FF5C8A" stroke-width="8"/>
+        <line x1="192" y1="130" x2="192" y2="94" stroke="#FFB020" stroke-width="8"/>
+      </g>
+      <g id="flames">
+        <path class="flame" d="M108 90 c-8-10 0-18 0-26 c10 8 10 18 0 26z" fill="#FFD23F"/>
+        <path class="flame" d="M129 84 c-8-10 0-18 0-26 c10 8 10 18 0 26z" fill="#FFB020"/>
+        <path class="flame" d="M150 80 c-8-10 0-18 0-26 c10 8 10 18 0 26z" fill="#FFD23F"/>
+        <path class="flame" d="M171 84 c-8-10 0-18 0-26 c10 8 10 18 0 26z" fill="#FFB020"/>
+        <path class="flame" d="M192 90 c-8-10 0-18 0-26 c10 8 10 18 0 26z" fill="#FFD23F"/>
+      </g>
+      <g fill="none" stroke="var(--muted)" stroke-width="3" stroke-linecap="round">
+        <path class="smoke" d="M108 80 q-6-8 0-16"/>
+        <path class="smoke" d="M150 74 q-6-8 0-16"/>
+        <path class="smoke" d="M192 80 q-6-8 0-16"/>
+      </g>
+    </svg>
+  </div>
+  <button class="blow" id="blow" type="button">Лаагаа үлээх</button>
+
+  <section class="wish" id="wish" aria-live="polite">
+    <h2 id="wt">Эгчдээ хүсье</h2>
+    <p>Эгчээ, шинэ нас чамд эрүүл энх, элбэг баяр баясгалан, үргэлж инээмсэглэх шалтгаан авчирах болтугай.</p>
+    <p>Бодсон бүхэн чинь биелж, дэргэд чинь үргэлж сайхан хүмүүс байх болтугай. Чамайг үргэлж хайрлаж, бахархаж явна.</p>
+    <p>Төрсөн өдрийн мэнд, эгчээ!</p>
+    <a class="song" href="https://youtu.be/jEqbB9o4zYo?si=aKcLq4ujfCjKBKEk" target="_blank" rel="noopener noreferrer">Танд зориулсан дууг сонсох</a>
+  </section>
+</main>
+
+<script>
+(function(){
+  var nm=document.getElementById('nm'), title=document.getElementById('title'), to=document.getElementById('to'),
+      wt=document.getElementById('wt'), stage=document.getElementById('stage'),
+      blow=document.getElementById('blow'), wish=document.getElementById('wish'),
+      cv=document.getElementById('fx'), ctx=cv.getContext('2d');
+
+  function setName(v){
+    v=(v||'').trim();
+    to.textContent = v ? v+' эгчдээ' : 'Эгчдээ';
+    wt.textContent = v ? v+' эгчдээ хүсье' : 'Эгчдээ хүсье';
+  }
+  setName(nm.value);
+  try{ var s=localStorage.getItem('bday-name'); if(s){nm.value=s; setName(s);} }catch(e){}
+  nm.addEventListener('input',function(){
+    setName(nm.value);
+    try{ localStorage.setItem('bday-name',nm.value); }catch(e){}
+  });
+
+  var parts=[], running=false;
+  function size(){ cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio; }
+  size(); addEventListener('resize',size);
+
+  function confetti(){
+    var cols=['#FF4D8D','#FFB000','#8B5CF6','#14B8A6','#FFFFFF'];
+    for(var i=0;i<140;i++){
+      parts.push({
+        x:innerWidth/2, y:innerHeight*0.45,
+        vx:(Math.random()-.5)*14, vy:-Math.random()*13-3,
+        w:6+Math.random()*6, h:8+Math.random()*8,
+        r:Math.random()*6, vr:(Math.random()-.5)*.4,
+        c:cols[i%cols.length], life:0
+      });
+    }
+    if(!running){ running=true; requestAnimationFrame(tick); }
+  }
+  function tick(){
+    var d=devicePixelRatio;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    parts=parts.filter(function(p){return p.y<innerHeight+30 && p.life<300;});
+    parts.forEach(function(p){
+      p.vy+=.35; p.vx*=.99; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life++;
+      ctx.save(); ctx.translate(p.x*d,p.y*d); ctx.rotate(p.r);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.w/2*d,-p.h/2*d,p.w*d,p.h*d); ctx.restore();
+    });
+    if(parts.length){ requestAnimationFrame(tick); } else { running=false; ctx.clearRect(0,0,cv.width,cv.height); }
+  }
+
+  blow.addEventListener('click',function(){
+    if(blow.disabled) return;
+    blow.disabled=true; blow.textContent='Хүсэл биелэх болтугай!';
+    stage.classList.add('out');
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){ confetti(); }
+    wish.classList.add('show');
+    setTimeout(function(){ wish.scrollIntoView({behavior:'smooth',block:'center'}); },400);
+  });
+  stage.addEventListener('click',function(){ blow.click(); });
+})();
+</script>
+</body>
+</html>
